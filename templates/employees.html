@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Search and Filter Panel -->
+<div class="panel-card mb-4">
+    <div class="panel-body p-3">
+        <form action="{{ url_for('employee_list') }}" method="GET" class="row g-2 align-items-center">
+            <div class="col-lg-4 col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Search name, email, or title...">
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <select name="department" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept }}" {{ 'selected' if selected_dept == dept else '' }}>{{ dept }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Active" {{ 'selected' if selected_status == 'Active' else '' }}>Active</option>
+                    <option value="Inactive" {{ 'selected' if selected_status == 'Inactive' else '' }}>Inactive</option>
+                </select>
+            </div>
+
+            <div class="col-lg-3 col-md-8 d-flex gap-2">
+                <button type="submit" class="btn btn-technova flex-grow-1">
+                    <i class="bi bi-filter"></i> Apply Filters
+                </button>
+                {% if search_query or selected_dept or selected_status %}
+                    <a href="{{ url_for('employee_list') }}" class="btn btn-outline-secondary" title="Clear Filters">
+                        <i class="bi bi-x-circle me-1"></i> Clear
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('employee_create') }}" class="btn btn-navy text-nowrap">
+                    <i class="bi bi-plus-lg"></i> Add
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Employee Directory Table -->
+<div class="panel-card mb-4">
+    <div class="panel-header">
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="panel-title">
+                <i class="bi bi-people-fill text-primary me-1"></i> Employees
+            </h2>
+            <span class="badge bg-light text-secondary border">Total: {{ total_items }}</span>
+            {% if search_query or selected_dept or selected_status %}
+                <span class="badge bg-info-subtle text-info border border-info-subtle">Filtered</span>
+            {% endif %}
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="small text-muted d-none d-sm-inline">Show:</span>
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="{{ url_for('employee_list', q=search_query, department=selected_dept, status=selected_status, per_page=10) }}" class="btn btn-outline-secondary {{ 'active' if per_page == 10 else '' }}">10</a>
+                <a href="{{ url_for('employee_list', q=search_query, department=selected_dept, status=selected_status, per_page=25) }}" class="btn btn-outline-secondary {{ 'active' if per_page == 25 else '' }}">25</a>
+                <a href="{{ url_for('employee_list', q=search_query, department=selected_dept, status=selected_status, per_page=50) }}" class="btn btn-outline-secondary {{ 'active' if per_page == 50 else '' }}">50</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-body p-0">
+        {% if employees %}
+            <div class="table-responsive">
+                <table class="table table-custom table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name & Email</th>
+                            <th>Department</th>
+                            <th>Job Title</th>
+                            <th>Phone</th>
+                            <th>Joining Date</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emp in employees %}
+                            <tr>
+                                <td class="text-muted fw-mono small">#{{ emp.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('employee_detail', id=emp.id) }}" class="fw-bold text-dark text-decoration-none">
+                                        {{ emp.full_name }}
+                                    </a>
+                                    <div class="small text-muted">{{ emp.email }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border">{{ emp.department }}</span>
+                                </td>
+                                <td>{{ emp.job_title }}</td>
+                                <td class="small text-muted">{{ emp.phone if emp.phone else '—' }}</td>
+                                <td class="small text-muted">{{ emp.joining_date }}</td>
+                                <td>
+                                    {% if emp.status == 'Active' %}
+                                        <span class="badge-active"><i class="bi bi-check2 me-1"></i>Active</span>
+                                    {% else %}
+                                        <span class="badge-inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <a href="{{ url_for('employee_detail', id=emp.id) }}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('employee_edit', id=emp.id) }}" class="btn btn-sm btn-outline-primary py-1 px-2" title="Edit Employee">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteConfirmModal"
+                                            data-employee-id="{{ emp.id }}"
+                                            data-employee-name="{{ emp.full_name }}"
+                                            title="Delete Employee">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            {% if total_pages > 1 %}
+                <div class="p-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div class="small text-muted">
+                        Showing page {{ page }} of {{ total_pages }} ({{ total_items }} total records)
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item {{ 'disabled' if page <= 1 else '' }}">
+                                <a class="page-link" href="{{ url_for('employee_list', page=page-1, per_page=per_page, q=search_query, department=selected_dept, status=selected_status) }}">
+                                    <i class="bi bi-chevron-left"></i> Previous
+                                </a>
+                            </li>
+
+                            {% for p in range(1, total_pages + 1) %}
+                                {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                                    <li class="page-item {{ 'active' if p == page else '' }}">
+                                        <a class="page-link" href="{{ url_for('employee_list', page=p, per_page=per_page, q=search_query, department=selected_dept, status=selected_status) }}">{{ p }}</a>
+                                    </li>
+                                {% elif p == page - 3 or p == page + 3 %}
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <li class="page-item {{ 'disabled' if page >= total_pages else '' }}">
+                                <a class="page-link" href="{{ url_for('employee_list', page=page+1, per_page=per_page, q=search_query, department=selected_dept, status=selected_status) }}">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5 px-3">
+                <i class="bi bi-person-x display-4 text-muted mb-3 d-block"></i>
+                <h3 class="h5 text-dark fw-bold">No Matching Employee Records</h3>
+                {% if search_query or selected_dept or selected_status %}
+                    <p class="text-muted small mb-3">
+                        No employees found matching the specified filters. Try adjusting your search query or department filter.
+                    </p>
+                    <a href="{{ url_for('employee_list') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                    </a>
+                {% else %}
+                    <p class="text-muted small mb-3">No employee records currently exist in the database.</p>
+                    <a href="{{ url_for('employee_create') }}" class="btn btn-technova btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Add New Employee
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

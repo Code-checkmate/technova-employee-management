@@ -1,0 +1,8 @@
+{
+  "name": "TechNova Employee Management System",
+  "description": "Enterprise Employee Management System demonstration application for AWS RDS MySQL to Aurora MySQL migration workflow, health monitoring, and data validation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

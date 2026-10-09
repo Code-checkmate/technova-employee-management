@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Hero / Migration Overview -->
+    <div class="col-12">
+        <div class="panel-card mb-0">
+            <div class="panel-header bg-white">
+                <div>
+                    <h2 class="panel-title fs-4">
+                        <i class="bi bi-diagram-3-fill text-primary me-2"></i> AWS Database Migration Architecture
+                    </h2>
+                    <p class="text-muted small mb-0 mt-1">
+                        Enterprise roadmap and operational blueprint for migrating TechNova Employee Management System from Amazon RDS for MySQL to Amazon Aurora MySQL.
+                    </p>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+                    Production Playbook
+                </span>
+            </div>
+
+            <div class="panel-body p-4">
+                <!-- Architecture Comparison Diagrams -->
+                <div class="row g-4 mb-4">
+                    <!-- Before Migration -->
+                    <div class="col-lg-6">
+                        <div class="arch-diagram-box h-100 border-warning-subtle">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h3 class="h6 fw-bold text-dark mb-0">
+                                    <i class="bi bi-1-circle-fill text-warning me-1"></i> Architecture Before Migration
+                                </h3>
+                                <span class="badge bg-warning text-dark">Baseline</span>
+                            </div>
+                            <p class="small text-muted mb-3">
+                                Application server running on Amazon EC2 connects directly to a single-instance Amazon RDS for MySQL database.
+                            </p>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="arch-node">
+                                    <i class="bi bi-globe me-2 text-primary"></i> Client Web Browser
+                                </div>
+                                <div class="arch-arrow">
+                                    <i class="bi bi-arrow-down"></i>
+                                </div>
+                                <div class="arch-node">
+                                    <i class="bi bi-server me-2 text-secondary"></i> EC2 Application Server (Flask / Gunicorn)
+                                </div>
+                                <div class="arch-arrow">
+                                    <i class="bi bi-arrow-down"></i>
+                                </div>
+                                <div class="arch-node arch-node-rds">
+                                    <i class="bi bi-database me-2 text-warning"></i> Amazon RDS for MySQL 8.x
+                                    <div class="small text-muted fw-normal">Host: <code>technova-db.c9akxxxxxx.rds.amazonaws.com</code></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- After Migration -->
+                    <div class="col-lg-6">
+                        <div class="arch-diagram-box h-100 border-success-subtle">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h3 class="h6 fw-bold text-dark mb-0">
+                                    <i class="bi bi-2-circle-fill text-success me-1"></i> Architecture After Cutover
+                                </h3>
+                                <span class="badge bg-success">Target</span>
+                            </div>
+                            <p class="small text-muted mb-3">
+                                EC2 Application Server connects to high-availability Amazon Aurora MySQL cluster with distributed storage and read replicas.
+                            </p>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="arch-node">
+                                    <i class="bi bi-globe me-2 text-primary"></i> Client Web Browser
+                                </div>
+                                <div class="arch-arrow">
+                                    <i class="bi bi-arrow-down"></i>
+                                </div>
+                                <div class="arch-node">
+                                    <i class="bi bi-server me-2 text-secondary"></i> EC2 Application Server (Flask / Gunicorn)
+                                </div>
+                                <div class="arch-arrow">
+                                    <i class="bi bi-arrow-down"></i>
+                                </div>
+                                <div class="arch-node arch-node-aurora">
+                                    <i class="bi bi-clouds me-2 text-success"></i> Amazon Aurora MySQL Cluster
+                                    <div class="small text-muted fw-normal">Cluster Endpoint: <code>technova-aurora.cluster-c9akxxxxxx.rds.amazonaws.com</code></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Critical Engineering Note -->
+                <div class="alert alert-warning border-warning-subtle p-3 rounded mb-4">
+                    <div class="d-flex align-items-start gap-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+                        <div>
+                            <h3 class="h6 fw-bold text-dark mb-1">Critical Engineering Distinction: Migration vs Cutover</h3>
+                            <p class="small text-dark mb-0">
+                                <strong>Changing an environment variable (<code>MYSQL_HOST</code>) only changes the target network endpoint; it DOES NOT migrate data.</strong>
+                                A complete database migration requires synchronizing database schema, indexes, and existing employee rows from Amazon RDS to Amazon Aurora before updating application configuration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7-Phase Migration Workflow -->
+                <h3 class="h5 fw-bold text-dark mb-3">
+                    <i class="bi bi-list-check me-1 text-primary"></i> 7-Phase Migration Implementation Plan
+                </h3>
+
+                <div class="accordion mb-4" id="migrationPhasesAccordion">
+                    <!-- Phase 1 -->
+                    <div class="accordion-item border mb-2 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="headingPhase1">
+                            <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase1" aria-expanded="true" aria-controls="collapsePhase1">
+                                <span class="badge bg-secondary me-2">Phase 1</span> Baseline: Application Active on Amazon RDS for MySQL
+                            </button>
+                        </h2>
+                        <div id="collapsePhase1" class="accordion-collapse collapse show" aria-labelledby="headingPhase1" data-bs-parent="#migrationPhasesAccordion">
+                            <div class="accordion-body small text-muted">
+                                <p>The TechNova application operates normally against the source Amazon RDS for MySQL instance. Establish baseline performance metrics:</p>
+                                <ul class="mb-0 ps-3">
+                                    <li>Query latency and transactions per second (TPS).</li>
+                                    <li>Total table counts and row count snapshot: <code>SELECT COUNT(*) FROM employees;</code></li>
+                                    <li>Verify backup retention and Amazon RDS automated snapshot status.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 2 -->
+                    <div class="accordion-item border mb-2 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="headingPhase2">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase2" aria-expanded="false" aria-controls="collapsePhase2">
+                                <span class="badge bg-secondary me-2">Phase 2</span> Destination Provisioning: Prepare Amazon Aurora MySQL Cluster
+                            </button>
+                        </h2>
+                        <div id="collapsePhase2" class="accordion-collapse collapse" aria-labelledby="headingPhase2" data-bs-parent="#migrationPhasesAccordion">
+                            <div class="accordion-body small text-muted">
+                                <p>Deploy target Aurora cluster within the same Amazon VPC or peered VPC:</p>
+                                <ul class="mb-0 ps-3">
+                                    <li>Create an Aurora MySQL 8.0-compatible DB cluster with 1 primary writer and at least 1 reader instance in a multi-AZ configuration.</li>
+                                    <li>Apply custom DB parameter group matching RDS MySQL character set and collation (utf8mb4).</li>
+                                    <li>Configure Security Groups allowing inbound traffic on port 3306 exclusively from the EC2 Application Server security group.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 3 -->
+                    <div class="accordion-item border mb-2 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="headingPhase3">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase3" aria-expanded="false" aria-controls="collapsePhase3">
+                                <span class="badge bg-secondary me-2">Phase 3</span> Data Migration: Replicate Database Contents
+                            </button>
+                        </h2>
+                        <div id="collapsePhase3" class="accordion-collapse collapse" aria-labelledby="headingPhase3" data-bs-parent="#migrationPhasesAccordion">
+                            <div class="accordion-body small text-muted">
+                                <p>Choose an appropriate AWS migration mechanism based on downtime tolerance:</p>
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <div class="p-2 border rounded bg-light">
+                                            <strong>Option A: Aurora Read Replica (Recommended for Low Downtime)</strong>
+                                            <p class="mb-0 mt-1">Create an Amazon Aurora Read Replica directly from the RDS MySQL DB instance. AWS automatically replicates data using binary logs. Once replica lag reaches 0, promote the replica into a standalone Aurora cluster.</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-2 border rounded bg-light">
+                                            <strong>Option B: AWS DMS or Snapshot Migration</strong>
+                                            <p class="mb-0 mt-1">Use AWS Database Migration Service (DMS) with Ongoing Replication (CDC) or restore an Amazon RDS snapshot directly to an Aurora MySQL DB cluster.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 4 -->
+                    <div class="accordion-item border mb-2 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="headingPhase4">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase4" aria-expanded="false" aria-controls="collapsePhase4">
+                                <span class="badge bg-secondary me-2">Phase 4</span> Pre-Cutover Validation: Verify Destination Integrity
+                            </button>
+                        </h2>
+                        <div id="collapsePhase4" class="accordion-collapse collapse" aria-labelledby="headingPhase4" data-bs-parent="#migrationPhasesAccordion">
+                            <div class="accordion-body small text-muted">
+                                <p>Validate that all employee data on the Aurora destination strictly mirrors the source RDS instance:</p>
+                                <ul class="mb-0 ps-3">
+                                    <li>Compare total rows: <code>SELECT COUNT(*) FROM employees</code> on RDS vs Aurora.</li>
+                                    <li>Verify table schema, constraints, primary key auto-increment values, and indexes (<code>ix_emp_dept_status</code>).</li>
+                                    <li>Execute checksum verification or compare MD5 hashes of sample employee subsets.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 5 -->
+                    <div class="accordion-item border mb-2 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="headingPhase5">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase5" aria-expanded="false" aria-controls="collapsePhase5">
+                                <span class="badge bg-secondary me-2">Phase 5</span> Application Cutover: Update Target Endpoint
+                            </button>
+                        </h2>
+                        <div id="collapsePhase5" class="accordion-collapse collapse" aria-labelledby="headingPhase5" data-bs-parent="#migrationPhasesAccordion">
+                            <div class="accordion-body small text-muted">
+                                <p>Execute the cutover by updating application environment configuration:</p>
+                                <ul class="mb-0 ps-3">
+                                    <li>Stop background writes or place source RDS in read-only mode during cutover maintenance window.</li>
+                                    <li>Update <code>MYSQL_HOST</code> to the Aurora Cluster Endpoint (e.g., <code>technova-aurora.cluster-xxxx.us-east-1.rds.amazonaws.com</code>).</li>
+                                    <li>Restart application service (e.g. <code>sudo systemctl restart technova-ems</code>).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 6 -->
+                    <div class="accordion-item border mb-2 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="headingPhase6">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase6" aria-expanded="false" aria-controls="collapsePhase6">
+                                <span class="badge bg-secondary me-2">Phase 6</span> Post-Cutover Verification: Functional Smoke Testing
+                            </button>
+                        </h2>
+                        <div id="collapsePhase6" class="accordion-collapse collapse" aria-labelledby="headingPhase6" data-bs-parent="#migrationPhasesAccordion">
+                            <div class="accordion-body small text-muted">
+                                <p>Conduct end-to-end verification through application test client and browser:</p>
+                                <ul class="mb-0 ps-3">
+                                    <li>Verify <code>/health</code> returns HTTP 200 with active Aurora connection.</li>
+                                    <li>Test Employee CRUD: Create test employee, view in directory, edit fields, and delete test record.</li>
+                                    <li>Monitor Amazon CloudWatch metrics: CPU utilization, active connections, and Aurora Replica Lag.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 7 -->
+                    <div class="accordion-item border mb-0 rounded overflow-hidden">
+                        <h2 class="accordion-header" id="headingPhase7">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePhase7" aria-expanded="false" aria-controls="collapsePhase7">
+                                <span class="badge bg-secondary me-2">Phase 7</span> Rollback Readiness: Retain Source Until Acceptance
+                            </button>
+                        </h2>
+                        <div id="collapsePhase7" class="accordion-collapse collapse" aria-labelledby="headingPhase7" data-bs-parent="#migrationPhasesAccordion">
+                            <div class="accordion-body small text-muted">
+                                <p>Preserve business continuity contingency:</p>
+                                <ul class="mb-0 ps-3">
+                                    <li>Keep the original Amazon RDS for MySQL instance in standby for the agreed contingency duration (e.g., 48 to 72 hours).</li>
+                                    <li>If unexpected regression occurs, rollback by reverting <code>MYSQL_HOST</code> to RDS MySQL endpoint and restarting application service.</li>
+                                    <li>Once acceptance sign-off is granted, decommission source RDS instance after taking a final manual DB snapshot.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification Checklist Table -->
+                <h3 class="h5 fw-bold text-dark mb-3">
+                    <i class="bi bi-clipboard2-check me-1 text-success"></i> Data Migration Verification Checklist
+                </h3>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-custom bg-white">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 25%;">Verification Check</th>
+                                <th style="width: 35%;">Procedure / Command</th>
+                                <th style="width: 25%;">Expected Result</th>
+                                <th style="width: 15%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">1. Row Count Parity</td>
+                                <td><code>SELECT COUNT(*) FROM employees;</code></td>
+                                <td>RDS count == Aurora count</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">2. Unique Email Integrity</td>
+                                <td><code>SELECT email, COUNT(*) FROM employees GROUP BY email HAVING COUNT(*) &gt; 1;</code></td>
+                                <td>0 duplicate rows</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">3. Department Distribution</td>
+                                <td><code>SELECT department, COUNT(*) FROM employees GROUP BY department;</code></td>
+                                <td>Identical departmental counts</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">4. Auto-Increment State</td>
+                                <td><code>SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_NAME='employees';</code></td>
+                                <td>Aurora counter &gt;= max(id)</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">5. Application Health Check</td>
+                                <td><code>curl -f http://ec2-instance:5000/health</code></td>
+                                <td>HTTP 200 OK, latency &lt; 50ms</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">6. Write Capability (CRUD)</td>
+                                <td>Create and delete a verification test employee record</td>
+                                <td>Successful write and commit</td>
+                                <td><span class="badge bg-success-subtle text-success border border-success-subtle">Required</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+        <!-- Top Back Navigation -->
+        <div class="mb-3 d-flex align-items-center justify-content-between">
+            <a href="{{ url_for('employee_list') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Employee Directory
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('employee_edit', id=employee.id) }}" class="btn btn-sm btn-technova">
+                    <i class="bi bi-pencil me-1"></i> Edit Employee
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteConfirmModal"
+                        data-employee-id="{{ employee.id }}"
+                        data-employee-name="{{ employee.full_name }}">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Detail Card -->
+        <div class="panel-card mb-4">
+            <div class="panel-header bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="metric-icon-wrap bg-primary-subtle text-primary fs-3">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <div>
+                        <h2 class="panel-title fs-4 text-dark mb-1">{{ employee.full_name }}</h2>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">{{ employee.job_title }}</span>
+                            <span class="text-muted small">&bull;</span>
+                            <span class="badge bg-light text-secondary border">{{ employee.department }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    {% if employee.status == 'Active' %}
+                        <span class="badge-active fs-6"><i class="bi bi-check-circle me-1"></i>Active</span>
+                    {% else %}
+                        <span class="badge-inactive fs-6">Inactive</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel-body p-4">
+                <div class="row g-4">
+                    <!-- Contact & Identity -->
+                    <div class="col-md-6">
+                        <h3 class="h6 text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 0.05em;">Contact Information</h3>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="p-3 bg-light rounded border">
+                                <div class="text-muted small mb-1"><i class="bi bi-envelope me-1"></i> Corporate Email</div>
+                                <div class="fw-semibold text-dark">{{ employee.email }}</div>
+                            </div>
+                            <div class="p-3 bg-light rounded border">
+                                <div class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i> Phone Number</div>
+                                <div class="fw-semibold text-dark">{{ employee.phone if employee.phone else 'Not provided' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Organization & Tenancy -->
+                    <div class="col-md-6">
+                        <h3 class="h6 text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 0.05em;">Organizational Details</h3>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="p-3 bg-light rounded border">
+                                <div class="text-muted small mb-1"><i class="bi bi-calendar-event me-1"></i> Joining Date</div>
+                                <div class="fw-semibold text-dark">{{ employee.joining_date }}</div>
+                            </div>
+                            <div class="p-3 bg-light rounded border">
+                                <div class="text-muted small mb-1"><i class="bi bi-building me-1"></i> Department Unit</div>
+                                <div class="fw-semibold text-dark">{{ employee.department }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Database System Metadata -->
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded border">
+                            <h3 class="h6 text-uppercase text-muted fw-bold mb-2" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                                <i class="bi bi-database me-1"></i> Database Record Metadata
+                            </h3>
+                            <div class="row g-2 text-muted small">
+                                <div class="col-sm-4">
+                                    <strong>Internal ID:</strong> #{{ employee.id }}
+                                </div>
+                                <div class="col-sm-4">
+                                    <strong>Created At:</strong> {{ employee.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if employee.created_at else 'N/A' }}
+                                </div>
+                                <div class="col-sm-4">
+                                    <strong>Last Updated:</strong> {{ employee.updated_at.strftime('%Y-%m-%d %H:%M:%S UTC') if employee.updated_at else 'N/A' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

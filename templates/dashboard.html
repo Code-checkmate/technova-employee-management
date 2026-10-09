@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Executive Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Total Employees</div>
+                    <div class="metric-value">{{ total_employees }}</div>
+                </div>
+                <div class="metric-icon-wrap bg-primary-subtle text-primary">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-diagram-3 me-1"></i> Across organization
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Active Personnel</div>
+                    <div class="metric-value text-success">{{ active_employees }}</div>
+                </div>
+                <div class="metric-icon-wrap bg-success-subtle text-success">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+            </div>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-activity text-success me-1"></i> Active assignments
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Inactive Personnel</div>
+                    <div class="metric-value text-secondary">{{ inactive_employees }}</div>
+                </div>
+                <div class="metric-icon-wrap bg-secondary-subtle text-secondary">
+                    <i class="bi bi-person-dash-fill"></i>
+                </div>
+            </div>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-clock-history me-1"></i> On leave or offboarded
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="metric-label">Departments</div>
+                    <div class="metric-value text-info">{{ department_count }}</div>
+                </div>
+                <div class="metric-icon-wrap bg-info-subtle text-info">
+                    <i class="bi bi-building"></i>
+                </div>
+            </div>
+            <div class="small text-muted mt-2">
+                <i class="bi bi-check-all me-1"></i> Operational business units
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Search and Filter Banner -->
+<div class="panel-card mb-4">
+    <div class="panel-body p-3">
+        <form action="{{ url_for('employee_list') }}" method="GET" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Search by employee name, email, or role...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="department" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for dept, count in dept_breakdown %}
+                        <option value="{{ dept }}">{{ dept }} ({{ count }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-technova w-100">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary" title="Reset Filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Main Dashboard Grid -->
+<div class="row g-4">
+    <!-- Left Column: Recent Employee Activity -->
+    <div class="col-lg-8">
+        <div class="panel-card mb-0">
+            <div class="panel-header">
+                <h2 class="panel-title">
+                    <i class="bi bi-clock-history me-1 text-primary"></i> Recently Added Records
+                </h2>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('employee_create') }}" class="btn btn-sm btn-technova">
+                        <i class="bi bi-plus-circle me-1"></i> Add Employee
+                    </a>
+                    <a href="{{ url_for('employee_list') }}" class="btn btn-sm btn-outline-secondary">
+                        View All ({{ total_employees }})
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body p-0">
+                {% if recent_employees %}
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Job Title</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for emp in recent_employees %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('employee_detail', id=emp.id) }}" class="fw-semibold text-dark text-decoration-none">
+                                                {{ emp.full_name }}
+                                            </a>
+                                            <div class="small text-muted">{{ emp.email }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-secondary border">{{ emp.department }}</span>
+                                        </td>
+                                        <td>{{ emp.job_title }}</td>
+                                        <td>
+                                            {% if emp.status == 'Active' %}
+                                                <span class="badge-active"><i class="bi bi-dot"></i>Active</span>
+                                            {% else %}
+                                                <span class="badge-inactive">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="small text-muted">{{ emp.joining_date }}</td>
+                                        <td class="text-end">
+                                            <a href="{{ url_for('employee_detail', id=emp.id) }}" class="btn btn-sm btn-light border py-0 px-2" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('employee_edit', id=emp.id) }}" class="btn btn-sm btn-light border py-0 px-2" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-4 text-muted mb-3 d-block"></i>
+                        <h3 class="h5 text-dark fw-bold">No Employee Records Found</h3>
+                        <p class="text-muted small mb-3">The database table is initialized, but no employee records have been inserted yet.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{ url_for('employee_create') }}" class="btn btn-technova btn-sm">
+                                <i class="bi bi-plus-lg me-1"></i> Add First Employee
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Architecture & Department Distribution -->
+    <div class="col-lg-4">
+        <!-- AWS Migration Context Banner -->
+        <div class="panel-card mb-4 border-primary-subtle">
+            <div class="panel-header bg-light">
+                <h2 class="panel-title h6">
+                    <i class="bi bi-cloud-arrow-up-fill me-1 text-primary"></i> AWS Migration Context
+                </h2>
+                <span class="badge bg-primary-subtle text-primary">Stage 1: Verified</span>
+            </div>
+            <div class="panel-body">
+                <p class="small text-muted mb-2">
+                    This system is architected for zero-downtime cutover between Amazon RDS for MySQL and Amazon Aurora MySQL.
+                </p>
+                <div class="p-2 rounded bg-light border mb-3 small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Target Engine:</span>
+                        <span class="fw-semibold text-dark">Aurora MySQL 8.x</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Config Mode:</span>
+                        <span class="badge bg-secondary">{{ db_mode|upper }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">DB Liveness:</span>
+                        <span class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>Connected</span>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('migration_info') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-journal-text me-1"></i> View 7-Phase Migration Guide
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Distribution -->
+        <div class="panel-card mb-0">
+            <div class="panel-header">
+                <h2 class="panel-title h6">
+                    <i class="bi bi-pie-chart-fill me-1 text-info"></i> Department Staffing
+                </h2>
+            </div>
+            <div class="panel-body">
+                {% if dept_breakdown %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for dept, count in dept_breakdown %}
+                            <div>
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="fw-medium text-dark">{{ dept }}</span>
+                                    <span class="text-muted">{{ count }} ({{ (count / total_employees * 100)|round|int if total_employees else 0 }}%)</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-primary" role="progressbar"
+                                         style="width: {{ (count / total_employees * 100)|round|int if total_employees else 0 }}%;"
+                                         aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="{{ total_employees }}">
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0 text-center py-3">No department metrics available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

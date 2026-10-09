@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <!-- Back Navigation -->
+        <div class="mb-3">
+            <a href="{{ url_for('employee_list') if action == 'create' else url_for('employee_detail', id=employee.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Cancel and Return
+            </a>
+        </div>
+
+        <div class="panel-card">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">
+                        <i class="bi {{ 'bi-person-plus-fill text-primary' if action == 'create' else 'bi-pencil-square text-primary' }} me-2"></i>
+                        {{ 'Register New Employee' if action == 'create' else 'Edit Employee Record' }}
+                    </h2>
+                    <p class="text-muted small mb-0 mt-1">
+                        {{ 'Provide employee details to store in the configured database engine.' if action == 'create' else 'Update the employee profile details.' }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="panel-body p-4">
+                <form method="POST" action="" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label for="{{ form.full_name.id }}" class="form-label fw-semibold">
+                            {{ form.full_name.label.text }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.full_name(class="form-control" ~ (" is-invalid" if form.full_name.errors else "")) }}
+                        {% if form.full_name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.full_name.errors %}
+                                    <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Email Address -->
+                    <div class="mb-3">
+                        <label for="{{ form.email.id }}" class="form-label fw-semibold">
+                            {{ form.email.label.text }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.email(class="form-control" ~ (" is-invalid" if form.email.errors else "")) }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}
+                                    <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="form-text text-muted">Must be a unique corporate email address.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Department -->
+                        <div class="col-md-6">
+                            <label for="{{ form.department.id }}" class="form-label fw-semibold">
+                                {{ form.department.label.text }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.department(class="form-select" ~ (" is-invalid" if form.department.errors else "")) }}
+                            {% if form.department.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.department.errors %}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Job Title -->
+                        <div class="col-md-6">
+                            <label for="{{ form.job_title.id }}" class="form-label fw-semibold">
+                                {{ form.job_title.label.text }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.job_title(class="form-control" ~ (" is-invalid" if form.job_title.errors else "")) }}
+                            {% if form.job_title.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.job_title.errors %}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Phone Number (Optional) -->
+                        <div class="col-md-6">
+                            <label for="{{ form.phone.id }}" class="form-label fw-semibold">
+                                {{ form.phone.label.text }}
+                            </label>
+                            {{ form.phone(class="form-control" ~ (" is-invalid" if form.phone.errors else "")) }}
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone.errors %}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Joining Date -->
+                        <div class="col-md-6">
+                            <label for="{{ form.joining_date.id }}" class="form-label fw-semibold">
+                                {{ form.joining_date.label.text }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.joining_date(class="form-control" ~ (" is-invalid" if form.joining_date.errors else "")) }}
+                            {% if form.joining_date.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.joining_date.errors %}
+                                        <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Employment Status -->
+                    <div class="mb-4">
+                        <label for="{{ form.status.id }}" class="form-label fw-semibold">
+                            {{ form.status.label.text }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.status(class="form-select" ~ (" is-invalid" if form.status.errors else "")) }}
+                        {% if form.status.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.status.errors %}
+                                    <div><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Form Action Buttons -->
+                    <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                        <a href="{{ url_for('employee_list') if action == 'create' else url_for('employee_detail', id=employee.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-technova px-4">
+                            <i class="bi {{ 'bi-check-lg' if action == 'create' else 'bi-save' }} me-1"></i>
+                            {{ 'Save Employee Record' if action == 'create' else 'Update Employee Record' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
